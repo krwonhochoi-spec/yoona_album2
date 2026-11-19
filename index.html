@@ -1,0 +1,414 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#dff1f7"><title>윤아 사진첩 2</title></head><body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">
+<style>
+/* Layout: one-screen picture book — year tabs on top, one huge swipeable photo card, speech bubble pops from the bottom. Single warm theme by choice (toddler app). */
+:root{
+  color-scheme: light;
+  --sky:#dff1f7;        /* page ground: soft morning sky */
+  --ink:#2b2440;        /* text */
+  --sun:#ffc93c;        /* active tab, highlights */
+  --berry:#ff6f91;      /* accent: play ring, keyword chips */
+  --leaf:#3fb68b;       /* grandma mode / save */
+  --paper:#ffffff;      /* card + bubble */
+  --muted:#6b6584;
+  --display:"Jua","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+}
+html,body{height:100%}
+body{background:var(--sky);color:var(--ink);font-family:var(--body);overflow:hidden;
+  -webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.app{height:100%;display:flex;flex-direction:column;gap:8px;padding-block:8px;padding-inline:16px;box-sizing:border-box;max-width:720px;margin:0 auto}
+
+/* top bar */
+.top{display:flex;align-items:center;gap:8px;flex:none}
+.tabs{display:flex;gap:8px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{font-family:var(--display);font-size:1.15rem;border:3px solid var(--ink);background:var(--paper);color:var(--ink);
+  border-radius:999px;padding:6px 6px;flex:1 1 0;min-width:4.6em;white-space:nowrap;cursor:pointer;box-shadow:0 3px 0 var(--ink);transition:transform .12s}
+.tab[aria-selected="true"]{background:var(--sun);transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+.tab:focus-visible,.btn:focus-visible,.nav:focus-visible{outline:3px solid var(--berry);outline-offset:2px}
+.gm{font-family:var(--body);font-size:.8rem;color:var(--muted);background:none;border:1px dashed var(--muted);border-radius:10px;padding:6px 8px;flex:none;cursor:pointer}
+.gm.on{color:var(--paper);background:var(--leaf);border:1px solid var(--leaf)}
+
+/* stage */
+.stage{position:relative;flex:1;min-height:0}
+.track{height:100%;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;border-radius:28px}
+.track::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100%;height:100%;scroll-snap-align:center;scroll-snap-stop:always;display:flex;align-items:center;justify-content:center;box-sizing:border-box;padding:4px}
+.card{position:relative;height:100%;width:100%;background:var(--paper);border:4px solid var(--ink);border-radius:28px;box-shadow:0 6px 0 var(--ink);
+  overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.card img{width:100%;height:100%;object-fit:contain;max-width:100%;background:var(--paper)}
+.card.playing{animation:wiggle .5s ease}
+.card.playing::after{content:"";position:absolute;inset:0;border:6px solid var(--berry);border-radius:24px;pointer-events:none;animation:pulse 1.2s ease-in-out infinite}
+@keyframes wiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-1.5deg) scale(1.01)}75%{transform:rotate(1.5deg) scale(1.01)}}
+@keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
+.age{position:absolute;left:12px;top:12px;font-family:var(--display);font-size:1.05rem;background:var(--sun);color:var(--ink);border:2px solid var(--ink);border-radius:12px;padding:3px 10px}
+.mic{position:absolute;right:12px;top:12px;font-family:var(--display);font-size:.9rem;background:var(--leaf);color:var(--paper);border-radius:10px;padding:3px 8px}
+.tap{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);font-family:var(--display);font-size:1.05rem;background:rgba(43,36,64,.72);color:var(--paper);border-radius:999px;padding:6px 16px;pointer-events:none;animation:bob 1.6s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,-6px)}}
+.nav{position:absolute;top:50%;transform:translateY(-50%);width:52px;height:52px;border-radius:50%;border:3px solid var(--ink);background:var(--paper);
+  font-family:var(--display);font-size:1.6rem;color:var(--ink);cursor:pointer;box-shadow:0 3px 0 var(--ink);display:flex;align-items:center;justify-content:center;opacity:.92}
+.nav.prev{left:-6px}.nav.next{right:-6px}
+.nav[disabled]{opacity:.25}
+
+/* bottom: counter + bubble */
+.foot{flex:none;display:flex;flex-direction:column;gap:8px}
+.counter{font-family:var(--display);text-align:center;color:var(--muted);font-variant-numeric:tabular-nums;font-size:1rem}
+.bubble{position:relative;background:var(--paper);border:3px solid var(--ink);border-radius:22px;padding:12px 16px;font-family:var(--display);font-size:1.3rem;line-height:1.45;
+  min-height:3.2em;box-shadow:0 4px 0 var(--ink);transform-origin:50% 0;text-wrap:pretty}
+.bubble::before{content:"";position:absolute;top:-14px;left:50%;margin-left:-12px;border:12px solid transparent;border-bottom-color:var(--ink);border-top:0}
+.bubble.pop{animation:pop .38s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+.bubble.long{font-size:1.08rem;line-height:1.4}
+.bubble .hint{color:var(--muted);font-size:1.05rem}
+.kw{background:var(--sun);border-radius:8px;padding:0 4px;white-space:nowrap}
+.who{display:block;font-family:var(--body);font-size:.85rem;color:var(--berry);margin-bottom:2px}
+
+/* grandma tools */
+.tools{display:flex;flex-wrap:wrap;gap:8px}
+.btn{font-family:var(--body);font-size:.95rem;font-weight:700;border:2px solid var(--ink);border-radius:12px;background:var(--paper);color:var(--ink);padding:8px 12px;cursor:pointer}
+.btn.rec{background:var(--berry);color:var(--paper);border-color:var(--berry)}
+.btn.save{background:var(--leaf);color:var(--paper);border-color:var(--leaf)}
+.btn[disabled]{opacity:.45}
+.edit{width:100%;box-sizing:border-box;font-family:var(--display);font-size:1.1rem;border:2px solid var(--ink);border-radius:12px;padding:8px;min-height:4.5em;background:var(--paper);color:var(--ink)}
+.status{font-size:.85rem;color:var(--muted);min-height:1.2em}
+@media (max-height:640px){.bubble{font-size:1.1rem}.tab{font-size:1.05rem;padding:4px 6px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style><style>#gm,#tools{display:none!important}</style>
+
+<div class="app">
+  <div class="top">
+    <div class="tabs" id="tabs" role="tablist" aria-label="연도"></div>
+    <button class="gm" id="gm" type="button" title="꾹 눌러서 할머니 모드">할머니</button>
+  </div>
+  <div class="stage">
+    <div class="track" id="track" aria-live="off"></div>
+    <button class="nav prev" id="prev" type="button" aria-label="이전 사진">‹</button>
+    <button class="nav next" id="next" type="button" aria-label="다음 사진">›</button>
+  </div>
+  <div class="foot">
+    <div class="counter" id="counter"></div>
+    <div class="bubble" id="bubble" aria-live="polite"><span class="hint">사진을 콕! 누르면 할머니가 말해 줘요</span></div>
+    <div id="tools" hidden>
+      <div class="tools">
+        <button class="btn rec" id="recBtn" type="button">● 녹음하기</button>
+        <button class="btn" id="fileBtn" type="button">음성 파일 넣기</button>
+        <button class="btn" id="bulkBtn" type="button">녹음 한꺼번에 넣기</button>
+        <button class="btn" id="editBtn" type="button">자막 고치기</button>
+        <button class="btn" id="delBtn" type="button">녹음 지우기</button>
+      </div>
+      <div id="editWrap" hidden style="margin-top:8px;display:grid;gap:6px">
+        <textarea class="edit" id="editTxt" aria-label="자막"></textarea>
+        <div class="tools"><button class="btn save" id="editSave" type="button">자막 저장</button><button class="btn" id="editCancel" type="button">취소</button></div>
+      </div>
+      <input type="file" id="fileIn" accept="audio/*" capture hidden>
+      <input type="file" id="bulkIn" accept="audio/*,.zip,.mp3,.m4a,.wav" multiple hidden>
+      <div class="status" id="status"></div>
+    </div>
+  </div>
+</div>
+
+<script id="album" type="application/json">[{"id": "p001", "image": "p001.jpg", "date": "2024-02-23", "group": "2024", "age": "10개월", "caption": "빨간 옷에 하얀 베레모 쓴 우리 윤아! 크리스마스 트리 불빛보다 윤아 웃음이 더 반짝반짝해. 곰돌이도 반해서 옆에 딱 붙어 앉았대. 할머니는 이 사진 보자마자 심장이 콩닥콩닥, 어쩔 줄을 몰랐단다!", "w": 1280, "h": 853}, {"id": "p002", "image": "p002.jpg", "date": "2024-03-24", "group": "2024", "age": "11개월", "caption": "첫 생일을 이틀 앞둔 윤아의 밥 먹방! 얼굴에 밥풀이 다닥다닥 붙었네. 밥은 입으로 먹었니, 볼로 먹었니? 할머니는 그 밥풀까지 예뻐서 하나하나 뽀뽀해 주고 싶었단다.", "w": 960, "h": 1280}, {"id": "p003", "image": "p003.jpg", "date": "2024-05-13", "group": "2024", "age": "13개월", "caption": "분홍 모자 쓰고 붕붕 출발~! 윤아 웃음소리가 놀이기구 음악보다 더 신나. 이 웃는 얼굴 한 번이면 할머니 피곤이 싹 날아가. 우리 윤아는 할머니 비타민이야!", "w": 960, "h": 1280}, {"id": "p004", "image": "p004.jpg", "date": "2024-05-20", "group": "2024", "age": "13개월", "caption": "선글라스 번쩍 들어 올리고 찡긋! 할리우드 스타가 우리 집 소파에 나타났네. 할머니는 너무 멋져서 '꺄악!' 소리를 질렀단다. 윤아 스타님, 사인 한 장만 해 주세요!", "w": 960, "h": 1280}, {"id": "p005", "image": "p005.jpg", "date": "2024-05-28", "group": "2024", "age": "14개월", "caption": "꿀단지 옆에 아기 곰돌이 푸가 나타났다! 벽 잡고 혼자 우뚝 선 것 좀 봐. 할머니는 '아이고, 우리 윤아 다 컸네!' 하면서 꿀보다 달콤한 윤아한테 사르르 녹아 버렸단다.", "w": 724, "h": 1280}, {"id": "p006", "image": "p006.jpg", "date": "2024-07-05", "group": "2024", "age": "15개월", "caption": "윤아가 한국에 왔다! 할머니랑 윤아랑 나란히 브이! 할머니 입이 귀에 걸린 것 좀 봐. 너무 반가워서 할머니는 어쩔 줄을 몰라 하루 종일 싱글벙글했단다.", "w": 1280, "h": 984}, {"id": "p007", "image": "p007.jpg", "date": "2024-07-06", "group": "2024", "age": "15개월", "caption": "한국에 온 다음 날, 할아버지 목말 타고 제주도 구경! 말들도 풀 먹다가 고개를 들고 '저 꼬마 공주님은 누구지?' 했대. 할머니는 옆에서 윤아 자랑하느라 정신이 하나도 없었단다.", "w": 893, "h": 1193}, {"id": "p008", "image": "p008.jpg", "date": "2024-07-13", "group": "2024", "age": "15개월", "caption": "어머, 우리 윤아가 그림책을 한 장 한 장 넘기네! 할머니는 옆에서 '천재다, 천재!' 하고 박수 치느라 손바닥이 다 빨개졌어. 아이고 예뻐라, 이걸 어쩌면 좋아!", "w": 1280, "h": 1130}, {"id": "p009", "image": "p009.jpg", "date": "2024-07-19", "group": "2024", "age": "15개월", "caption": "두구두구두구! 윤아가 거실 한가운데 딱 섰어. 온 가족이 두 팔 벌리고 '윤아야, 나한테 와!' 하고 불러. 과연 윤아는 누구한테 갈까요? 할머니는 가슴이 콩닥콩닥, 숨도 못 쉬고 기다렸단다!", "w": 1280, "h": 874}, {"id": "p010", "image": "p010.jpg", "date": "2024-07-19", "group": "2024", "age": "15개월", "caption": "온다, 온다! 꽃 원피스 입은 윤아가 아장아장 걸어온다! 한 걸음, 두 걸음… 어? 할아버지 쪽이야, 할머니 쪽이야? 할머니는 두 팔을 쭉 뻗고 '이쪽이야, 이쪽!' 하고 속으로 외쳤단다!", "w": 1224, "h": 1280}, {"id": "p011", "image": "p011.jpg", "date": "2024-07-19", "group": "2024", "age": "15개월", "caption": "앗! 할아버지한테 먼저 골인! 할아버지는 신이 나서 윤아를 꼭 안고, 온 가족은 깔깔깔 웃음이 빵 터졌어. 할머니는 '아이고, 할아버지가 이겼네!' 하면서도 너무 웃겨서 뒤로 넘어갈 뻔했단다.", "w": 1280, "h": 976}, {"id": "p012", "image": "p012.jpg", "date": "2024-07-19", "group": "2024", "age": "15개월", "caption": "그 다음엔 할머니~! 드디어 할머니 품에도 쏙 안겼어. 기다린 보람이 있었지! 윤아 냄새가 솔솔, 세상에서 제일 좋은 냄새야. 할머니는 너무 행복해서 이대로 시간이 딱 멈췄으면 좋겠다 싶었단다.", "w": 1280, "h": 725}, {"id": "p013", "image": "p013.jpg", "date": "2024-07-19", "group": "2024", "age": "15개월", "caption": "걸음마 대성공! 윤아도 짝짝짝, 할머니도 짝짝짝! 스스로 해낸 게 뿌듯한지 윤아가 활짝 웃네. 할머니는 이 고사리손을 꼭 잡고 백 번 천 번 뽀뽀하고 싶었어.", "w": 1280, "h": 1130}, {"id": "p014", "image": "p014.jpg", "date": "2024-07-24", "group": "2024", "age": "15개월", "caption": "영차영차, 윤아가 청소를 해요! 이렇게 작은 손으로 밀대를 밀다니, 세상에 이런 효녀가 또 있을까? 할머니는 기특하고 예뻐서 눈물이 날 뻔했어. 윤아는 그냥 웃기만 해도 돼!", "w": 960, "h": 1280}, {"id": "p015", "image": "p015.jpg", "date": "2024-08-26", "group": "2024", "age": "17개월", "caption": "공항에서 할머니 손가락을 꼭 잡은 윤아. '할머니, 또 만나요!' 하는 것 같지? 말랑말랑 찹쌀떡 볼을 보니 할머니는 가슴이 뭉클, 보내기 싫어서 발이 안 떨어졌단다.", "w": 721, "h": 1280}, {"id": "p016", "image": "p016.jpg", "date": "2024-08-26", "group": "2024", "age": "17개월", "caption": "윤아가 비행기 타러 가는 날, 할머니 할아버지랑 마지막 찰칵! 웃고 있지만 할머니는 벌써 윤아가 보고 싶었어. 멀리 가도 할머니 마음속엔 언제나 윤아가 쏙 들어 있단다.", "w": 1280, "h": 721}, {"id": "p017", "image": "p017.jpg", "date": "2024-08-28", "group": "2024", "age": "17개월", "caption": "엄마 아빠랑 아일랜드에 무사히 도착! 다들 손을 흔드는데 윤아만 의젓하게 쳐다보네. 할머니도 바다 건너에서 손을 흔들고 있어. 안녕, 우리 강아지! 잘 도착해서 고마워!", "w": 960, "h": 1280}, {"id": "p018", "image": "p018.jpg", "date": "2024-08-28", "group": "2024", "age": "17개월", "caption": "커다란 점퍼 입고 꼬마 회사원 출근! 소매가 길어서 손이 쏙 숨었네. 이렇게 귀여운 직원이 있으면 회사 사람들이 일을 못 하겠어. 다들 윤아만 쳐다볼 테니까!", "w": 960, "h": 1280}, {"id": "p019", "image": "p019.jpg", "date": "2024-09-01", "group": "2024", "age": "17개월", "caption": "모래 놀이터에서 '할머니, 이거 받아요!' 하고 내미는 거야? 노란 삽에 모래 케이크가 한가득! 할머니는 세상에서 제일 맛있는 케이크를 선물 받았단다.", "w": 960, "h": 1280}, {"id": "p020", "image": "p020.jpg", "date": "2024-09-02", "group": "2024", "age": "17개월", "caption": "하얀 원피스 입은 우리 윤아, 꼭 동화책 속 공주님 같아. 살짝 올라간 입꼬리 좀 봐! 할머니는 너무 예뻐서 '아이고, 어쩌면 좋아!' 소리만 계속 나왔단다.", "w": 960, "h": 1280}, {"id": "p021", "image": "p021.jpg", "date": "2024-09-04", "group": "2024", "age": "17개월", "caption": "앞머리 찰랑, 눈은 똘망똘망! 윤아가 할머니를 빤히 쳐다보네. 이렇게 쳐다보면 할머니는 녹아서 아이스크림이 돼 버려. 사랑해, 사랑해, 우리 윤아!", "w": 1030, "h": 1280}, {"id": "p022", "image": "p022.jpg", "date": "2025-11-07", "group": "2025", "age": "31개월", "caption": "윤아가 다시 한국에 왔다! 이번엔 꼬마 사장님이 되었네. '어서 오세요, 윤아 가게입니다!' 할머니는 지갑을 탈탈 털어서 다 사고 싶었어. 사장님이 이렇게 예쁘면 손님이 줄을 서겠는걸!", "w": 1280, "h": 780}, {"id": "p023", "image": "p023.jpg", "date": "2025-11-14", "group": "2025", "age": "31개월", "caption": "할아버지랑 나란히 소파에서 쉬는 중! 둘이 똑같이 발을 쭉 뻗었네. 할머니는 이 모습이 너무 웃기고 귀여워서 배꼽을 잡고 웃었단다.", "w": 960, "h": 1280}, {"id": "p024", "image": "p024.jpg", "date": "2025-11-20", "group": "2025", "age": "31개월", "caption": "푸른 바다 앞에서 온 가족 찰칵! 바다보다 넓은 게 뭔지 아니? 바로 윤아를 사랑하는 할머니 마음이야. 윤아가 있어서 바다도 더 반짝반짝 빛났단다.", "w": 1280, "h": 721}, {"id": "p025", "image": "p025.jpg", "date": "2025-11-20", "group": "2025", "age": "31개월", "caption": "멋진 절 앞에서 다 같이 브이! 윤아도 작은 손가락으로 브이를 했네. 할머니는 윤아 브이가 제일 귀여워서 그것만 보고 또 봤단다.", "w": 1280, "h": 721}, {"id": "p026", "image": "p026.jpg", "date": "2025-11-21", "group": "2025", "age": "31개월", "caption": "오락실 게임왕 윤아 등장! 버튼을 꾹꾹 누르는 모습이 프로 선수 같아. 할머니는 게임은 몰라도 윤아 응원은 일등이야. 이겨라, 윤아!", "w": 960, "h": 1280}, {"id": "p027", "image": "p027.jpg", "date": "2025-11-22", "group": "2025", "age": "31개월", "caption": "커다란 부처님 앞에서 온 가족이 꾸벅 절을 해요. 그중에 제일 작은 분홍 엉덩이 보이지? 바로 윤아야! 할머니는 그 모습이 너무 기특해서 웃음이 터졌단다.", "w": 721, "h": 1280}, {"id": "p028", "image": "p028.jpg", "date": "2025-11-22", "group": "2025", "age": "31개월", "caption": "땋은 머리 찰랑찰랑, 절 문 앞에서 살금살금 안을 들여다보네. 윤아야, 뭐가 보이니? 할머니 눈에는 문 앞에 선 윤아가 세상에서 제일 예쁜 그림이야.", "w": 960, "h": 1280}, {"id": "p029", "image": "p029.jpg", "date": "2025-11-22", "group": "2025", "age": "31개월", "caption": "할아버지랑 돌탑 쌓기! 할아버지는 열심히 돌을 쌓고, 윤아는 머리를 긁적긁적. 할머니 소원은 딱 하나야. 우리 윤아가 언제나 이렇게 웃는 거!", "w": 1280, "h": 960}, {"id": "p030", "image": "p030.jpg", "date": "2025-11-22", "group": "2025", "age": "31개월", "caption": "높은 산꼭대기에서 엄마랑 돌멩이 놀이! 바람이 차가운데도 윤아 웃음은 햇님처럼 따뜻해. 할머니는 이 웃음 보려고 산꼭대기라도 백 번 올라갈 수 있단다!", "w": 1280, "h": 721}, {"id": "p031", "image": "p031.jpg", "date": "2026-08-16", "group": "2026", "age": "40개월", "caption": "할머니는 타닥타닥 키보드, 윤아는 딸깍딸깍 마우스! 둘이 같이 일하는 회사 같지? 이렇게 귀여운 사장님이 있으면 할머니는 매일 출근하고 싶어. 윤아야, 또 같이 놀자!", "w": 1280, "h": 867}, {"id": "p032", "image": "p032.jpg", "date": "2026-09-04", "group": "2026", "age": "41개월", "caption": "할머니랑 외할머니 사이에 쏙! 할머니가 둘이라 사랑도 두 배, 뽀뽀도 두 배야. 윤아가 볼에 손가락을 콕 찍고 웃으니까 두 할머니가 동시에 '아이고, 예뻐라!' 했단다. 비행기 타고 멀리 가도 두 할머니 마음은 언제나 윤아 옆에 있어!", "w": 1280, "h": 1217}]</script>
+<script>
+(() => {
+"use strict";
+const ALBUM = JSON.parse(document.getElementById("album").textContent);
+const GROUPS = [...new Set(ALBUM.map(p => p.group))];
+const $ = id => document.getElementById(id);
+const track = $("track"), bubble = $("bubble"), counter = $("counter");
+
+/* ---------- shared voice data (published files) ---------- */
+let data = { voices: {}, captions: {} };      // voices[id] = {path,type}; captions[id] = text
+const localUrl = {};                           // id -> blob: URL for recordings made in this view
+let voicesReady = false;
+function loadVoices(n) {
+  fetch("data/voices.json?ts=" + Date.now(), { cache: "no-store" })
+    .then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(j => { data = { voices: j.voices || {}, captions: j.captions || {} }; voicesReady = true; render(); })
+    .catch(() => { if (n < 4) setTimeout(() => loadVoices(n + 1), 1200 * (n + 1)); else voicesReady = true; });
+}
+loadVoices(0);
+const captionOf = p => data.captions[p.id] || p.caption;
+const hasVoice = p => !!(localUrl[p.id] || data.voices[p.id]);
+
+/* ---------- Audio controller: one voice at a time ---------- */
+const Audio1 = (() => {
+  const el = new Audio(); el.preload = "auto";
+  const ALLOW_TTS = true;    // 할머니 녹음이 아직 없는 사진만 기계 목소리로 읽음 (녹음이 있으면 항상 할머니 목소리)
+  let onEnd = null, koVoice = null, token = 0;
+  const blobs = {}, loading = {};   // path -> blob: URL (미리 내려받은 할머니 목소리)
+  const pickVoice = () => { const v = speechSynthesis.getVoices(); koVoice = v.find(x => /ko[-_]KR/i.test(x.lang)) || v.find(x => /^ko/i.test(x.lang)) || null; };
+  if ("speechSynthesis" in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+  const finish = () => { const f = onEnd; onEnd = null; f && f(); };
+  const note = t => bubble.insertAdjacentHTML("beforeend", '<span class="hint" style="display:block;margin-top:6px">' + t + "</span>");
+  el.addEventListener("ended", finish);
+  el.addEventListener("error", () => { if (!onEnd) return; note("목소리 파일을 불러오지 못했어요. 인터넷을 확인하고 다시 눌러 주세요."); finish(); });
+  function prefetch(p) {
+    const v = data.voices[p.id];
+    if (!v || localUrl[p.id] || blobs[v.path] || loading[v.path]) return;
+    loading[v.path] = fetch(v.path).then(r => r.ok ? r.blob() : Promise.reject())
+      .then(b => { blobs[v.path] = URL.createObjectURL(new Blob([b], { type: v.type || "audio/mpeg" })); })
+      .catch(() => {}).then(() => { delete loading[v.path]; });
+  }
+  function stop() {
+    token++;   // 이전 재생 요청의 뒤늦은 실패 처리를 무효화
+    try { el.pause(); el.currentTime = 0; } catch (e) {}
+    if ("speechSynthesis" in window) speechSynthesis.cancel();
+    finish();
+  }
+  function play(p, done) {
+    stop(); onEnd = done;
+    const my = token, v = data.voices[p.id];
+    const src = localUrl[p.id] || (v && (blobs[v.path] || v.path));
+    if (!src) {
+      if (!voicesReady) { note("할머니 목소리를 불러오는 중이에요. 잠시 후 다시 눌러 주세요."); setTimeout(() => { if (my === token) finish(); }, 1500); return; }
+      if (ALLOW_TTS) { speak(captionOf(p)); return; }
+      note("이 사진은 아직 할머니 녹음이 없어요.");
+      setTimeout(() => { if (my === token) finish(); }, 1500);
+      return;
+    }
+    el.src = src;
+    const pr = el.play();
+    if (pr && pr.catch) pr.catch(err => {
+      if (my !== token || (err && err.name === "AbortError")) return;
+      el.addEventListener("canplay", () => { if (my === token) el.play().catch(() => { if (my === token) finish(); }); }, { once: true });
+    });
+  }
+  function speak(text) {
+    if (!("speechSynthesis" in window)) { setTimeout(() => onEnd && onEnd(), 2500); return; }
+    const u = new SpeechSynthesisUtterance(text.replace(/[!?~]/g, m => m === "~" ? "" : m));
+    u.lang = "ko-KR"; if (koVoice) u.voice = koVoice; u.rate = 0.92; u.pitch = 1.15;
+    u.onend = u.onerror = () => onEnd && onEnd();
+    speechSynthesis.speak(u);
+  }
+  return { play, stop, prefetch };
+})();
+
+/* ---------- caption with Korean word chips ---------- */
+const KW = /(반짝반짝|사랑해|어쩔 줄|예쁘[다네지]|예뻐[!요]?|귀여[운워움]|천재|공주님|사랑|말랑말랑|동글동글|뽀송뽀송|최고|할머니|할아버지|엄마|아빠)/g;
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function showCaption(p) {
+  bubble.innerHTML = '<span class="who">할머니가 말해요' + (hasVoice(p) ? " · 목소리" : "") + "</span>" + esc(captionOf(p)).replace(KW, '<span class="kw">$1</span>');
+  bubble.classList.toggle("long", captionOf(p).length > 60);
+  bubble.classList.remove("pop"); void bubble.offsetWidth; bubble.classList.add("pop");
+}
+
+/* ---------- tabs + slides ---------- */
+let group = GROUPS[0];
+try { const g = localStorage.getItem("yoona2.tab"); if (GROUPS.includes(g)) group = g; } catch (e) {}
+let list = [], idx = 0, playingCard = null;
+const label = g => g === "뱃속" ? "뱃속" : g + "년";
+
+function renderTabs() {
+  $("tabs").innerHTML = GROUPS.map(g => `<button class="tab" role="tab" type="button" data-g="${esc(g)}" aria-selected="${g === group}">${label(g)}</button>`).join("");
+}
+function render() {
+  list = ALBUM.filter(p => p.group === group);
+  track.innerHTML = list.map((p, i) => `
+    <div class="slide"><div class="card" data-i="${i}" role="button" aria-label="${esc(p.age)} 사진, 누르면 할머니 목소리">
+      <img src="photos/${p.image}" alt="${esc(p.age)} 윤아" ${i < 2 ? "" : 'loading="lazy"'} decoding="async" draggable="false">
+      <span class="age">${esc(p.age)}</span>${hasVoice(p) ? '<span class="mic">할머니 목소리</span>' : ""}
+      ${i === 0 ? '<span class="tap">콕! 눌러 봐</span>' : ""}
+    </div></div>`).join("");
+  idx = Math.min(idx, list.length - 1);
+  track.scrollLeft = idx * track.clientWidth;
+  updateCounter();
+}
+function updateCounter() {
+  const gi = GROUPS.indexOf(group), before = ALBUM.findIndex(p => p.group === group);
+  counter.textContent = `${label(group)} ${idx + 1} / ${list.length} · 전체 ${before + idx + 1} / ${ALBUM.length}장`;
+  $("prev").disabled = idx <= 0 && gi <= 0; $("next").disabled = idx >= list.length - 1 && gi >= GROUPS.length - 1;
+  for (let k = idx - 1; k <= idx + 2; k++) if (list[k]) Audio1.prefetch(list[k]);   // 앞뒤 사진 목소리를 미리 받아 두기
+}
+function go(i) { idx = Math.max(0, Math.min(list.length - 1, i)); track.scrollTo({ left: idx * track.clientWidth, behavior: "smooth" }); updateCounter(); }
+
+function setGroup(g, atEnd) {
+  Audio1.stop(); group = g; idx = atEnd ? ALBUM.filter(p => p.group === g).length - 1 : 0;
+  try { localStorage.setItem("yoona2.tab", group); } catch (e) {}
+  renderTabs(); render(); resetBubble(); closeEdit();
+  const t = document.querySelector('.tab[aria-selected="true"]'); if (t) t.scrollIntoView({ inline: "nearest", block: "nearest" });
+}
+$("tabs").addEventListener("click", e => {
+  const b = e.target.closest(".tab"); if (!b || b.dataset.g === group) return;
+  setGroup(b.dataset.g, false);
+});
+/* 연도 끝에서 › 를 누르면 다음 연도로, 처음에서 ‹ 를 누르면 이전 연도로 넘어감 */
+$("prev").onclick = () => { const gi = GROUPS.indexOf(group); if (idx <= 0 && gi > 0) setGroup(GROUPS[gi - 1], true); else go(idx - 1); };
+$("next").onclick = () => { const gi = GROUPS.indexOf(group); if (idx >= list.length - 1 && gi < GROUPS.length - 1) setGroup(GROUPS[gi + 1], false); else go(idx + 1); };
+
+let st;
+track.addEventListener("scroll", () => {
+  clearTimeout(st);
+  st = setTimeout(() => {
+    const i = Math.round(track.scrollLeft / track.clientWidth);
+    if (i !== idx) { idx = i; Audio1.stop(); resetBubble(); closeEdit(); updateCounter(); }
+  }, 90);
+}, { passive: true });
+addEventListener("resize", () => { track.scrollLeft = idx * track.clientWidth; });
+
+track.addEventListener("click", e => {
+  const card = e.target.closest(".card"); if (!card) return;
+  const i = +card.dataset.i; idx = i; updateCounter();
+  const p = list[i];
+  const tip = card.querySelector(".tap"); if (tip) tip.remove();
+  showCaption(p);
+  if (playingCard) playingCard.classList.remove("playing");
+  playingCard = card; card.classList.remove("playing"); void card.offsetWidth; card.classList.add("playing");
+  Audio1.play(p, () => { card.classList.remove("playing"); if (playingCard === card) playingCard = null; });
+});
+function resetBubble() {
+  bubble.innerHTML = '<span class="hint">사진을 콕! 누르면 할머니가 말해 줘요</span>';
+  if (playingCard) { playingCard.classList.remove("playing"); playingCard = null; }
+}
+
+/* ---------- Grandma mode (long-press so the toddler can't open it) ---------- */
+let gmOn = false, pressT;
+const gmBtn = $("gm");
+const setGm = on => { gmOn = on; gmBtn.classList.toggle("on", on); gmBtn.textContent = on ? "할머니 모드 끝" : "할머니"; $("tools").hidden = !on; status(on ? "사진을 넘기고 녹음하기를 누르세요. 저장하면 모두에게 보여요." : ""); closeEdit(); };
+let justOpened = false;
+gmBtn.addEventListener("pointerdown", () => { if (gmOn) return; gmBtn.textContent = "꾹…"; pressT = setTimeout(() => { justOpened = true; setGm(true); }, 1200); });
+["pointerup", "pointerleave", "pointercancel"].forEach(ev => gmBtn.addEventListener(ev, () => { clearTimeout(pressT); if (!gmOn) gmBtn.textContent = "할머니"; }));
+gmBtn.addEventListener("contextmenu", e => e.preventDefault());
+gmBtn.addEventListener("click", e => {
+  if (e.detail === 0) { setGm(!gmOn); return; }          // keyboard
+  if (justOpened) { justOpened = false; return; }
+  if (gmOn) setGm(false);
+});
+function status(t) { $("status").textContent = t; }
+
+let artifactNs = null, readOnly = false;
+const artP = (window.claude && window.claude.use) ? window.claude.use("artifact").then(a => (artifactNs = a)).catch(() => null) : Promise.resolve(null);
+
+async function save(files, okMsg) {
+  await artP;
+  if (!artifactNs || readOnly) { status("이 화면에서는 저장할 수 없어요 (보기 전용). 단장님 계정의 링크에서 저장해 주세요."); return false; }
+  status("저장 중…");
+  try { await artifactNs.publish(files); status(okMsg); return true; }
+  catch (e) {
+    const c = e && e.code;
+    if (["not_writer", "not_granted", "capability_disabled", "consent_required", "capability_removed", "not_declared"].includes(c)) { readOnly = true; status("보기 전용 링크라서 저장할 수 없어요."); }
+    else if (c === "conflict") status("다른 곳에서 먼저 저장되어 새로 고칩니다. 다시 해 주세요.");
+    else if (c === "too_large") status("파일이 너무 커요. 30초 이내로 녹음해 주세요.");
+    else if (c === "rate_limited") status("잠시 후 다시 저장해 주세요.");
+    else status("저장하지 못했어요. 잠시 후 다시 해 주세요.");
+    return false;
+  }
+}
+const voicesFile = () => ({ content: JSON.stringify(data, null, 1), contentType: "application/json" });
+
+async function storeVoice(blob) {
+  const p = list[idx]; if (!p) return;
+  if (blob.size > 6 * 1024 * 1024) { status("파일이 너무 커요. 30초 이내로 해 주세요."); return; }
+  const t = (blob.type || "").split(";")[0] || "audio/mpeg";
+  const ext = /mp4|m4a|aac/.test(t) ? "mp4" : /webm/.test(t) ? "webm" : /ogg/.test(t) ? "ogg" : /wav/.test(t) ? "wav" : "mp3";
+  const path = `voices/${p.id}-${Date.now()}.${ext}`;
+  const prev = data.voices[p.id];
+  localUrl[p.id] = URL.createObjectURL(blob);
+  data.voices[p.id] = { path, type: t };
+  const files = { [path]: { content: blob, contentType: ext === "mp4" ? "audio/mp4" : t }, "data/voices.json": voicesFile() };
+  if (prev && prev.path) files[prev.path] = null;
+  const ok = await save(files, "저장했어요! 사진을 눌러 들어 보세요.");
+  if (!ok) status($("status").textContent + " (지금 이 폰에서는 들어볼 수 있어요)");
+  render(); go(idx);
+}
+
+/* recording: microphone if the viewer allows it, otherwise the phone's own recorder via file picker */
+let rec = null, chunks = [], recStop;
+$("recBtn").onclick = async () => {
+  if (rec) { rec.stop(); return; }
+  Audio1.stop();
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+  catch (e) {
+    if (matchMedia("(pointer:coarse)").matches) { status("이 화면에서 마이크를 쓸 수 없어 휴대폰 녹음기를 엽니다."); $("fileIn").click(); }
+    else status("PC에서는 '윤아 사진첩2 녹음 도우미' 파일로 녹음한 뒤, [녹음 한꺼번에 넣기]로 ZIP을 넣어 주세요.");
+    return;
+  }
+  const mime = ["audio/mp4", "audio/webm;codecs=opus", "audio/webm"].find(m => window.MediaRecorder && MediaRecorder.isTypeSupported(m)) || "";
+  rec = new MediaRecorder(stream, mime ? { mimeType: mime, audioBitsPerSecond: 48000 } : undefined);
+  chunks = [];
+  rec.ondataavailable = e => e.data.size && chunks.push(e.data);
+  rec.onstop = () => { clearTimeout(recStop); stream.getTracks().forEach(t => t.stop()); const b = new Blob(chunks, { type: rec.mimeType || mime || "audio/webm" }); rec = null; $("recBtn").textContent = "● 녹음하기"; storeVoice(b); };
+  rec.start(); $("recBtn").textContent = "■ 녹음 끝내기"; status("녹음 중… 자막을 읽어 주세요 (최대 30초)");
+  showCaption(list[idx]);
+  recStop = setTimeout(() => rec && rec.stop(), 30000);
+};
+$("fileBtn").onclick = () => $("fileIn").click();
+$("fileIn").onchange = e => { const f = e.target.files[0]; e.target.value = ""; if (f) storeVoice(f); };
+
+/* bulk import: files named pNNN.* (or a ZIP of them) are matched to photos by number */
+async function unzip(file) {
+  const buf = await file.arrayBuffer(), dv = new DataView(buf), out = [];
+  let e = buf.byteLength - 22; while (e >= 0 && dv.getUint32(e, true) !== 0x06054b50) e--;
+  if (e < 0) return out;
+  let n = dv.getUint16(e + 10, true), o = dv.getUint32(e + 16, true);
+  const dec = new TextDecoder();
+  while (n-- > 0 && dv.getUint32(o, true) === 0x02014b50) {
+    const m = dv.getUint16(o + 10, true), cs = dv.getUint32(o + 20, true), nl = dv.getUint16(o + 28, true), xl = dv.getUint16(o + 30, true), cl = dv.getUint16(o + 32, true), lo = dv.getUint32(o + 42, true);
+    const name = dec.decode(new Uint8Array(buf, o + 46, nl)); o += 46 + nl + xl + cl;
+    const ds = lo + 30 + dv.getUint16(lo + 26, true) + dv.getUint16(lo + 28, true);
+    let bytes = new Uint8Array(buf, ds, cs);
+    if (m === 8) bytes = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer());
+    else if (m !== 0) continue;
+    const ext = (name.split(".").pop() || "").toLowerCase();
+    out.push(new File([bytes], name.split("/").pop(), { type: ext === "m4a" ? "audio/mp4" : ext === "wav" ? "audio/wav" : "audio/mpeg" }));
+  }
+  return out;
+}
+$("bulkBtn").onclick = () => $("bulkIn").click();
+$("bulkIn").onchange = async e => {
+  const picked = [...e.target.files]; e.target.value = "";
+  let files = [];
+  for (const f of picked) { if (/\.zip$/i.test(f.name)) { try { files.push(...await unzip(f)); } catch (_) {} } else files.push(f); }
+  const byId = {}, skipped = [];
+  for (const f of files) {
+    const m = f.name.match(/p(\d{3})/i) || f.name.match(/^(\d{1,3})\D/);
+    const id = m ? "p" + String(+m[1]).padStart(3, "0") : null;
+    if (id && ALBUM.some(a => a.id === id) && f.size <= 6 * 1024 * 1024) byId[id] = f; else skipped.push(f.name);
+  }
+  const ids = Object.keys(byId).sort();
+  if (!ids.length) { status("연결할 파일이 없어요. 파일 이름이 p001.mp3 처럼 번호로 시작해야 해요."); return; }
+  Audio1.stop(); let done = 0, failed = false;
+  for (let i = 0; i < ids.length && !failed; i += 10) {
+    const batch = ids.slice(i, i + 10), files2 = {}, prevs = {}, urls = {};
+    for (const id of batch) {
+      const f = byId[id], t = f.type || "audio/mpeg";
+      const ext = /mp4|m4a|aac/.test(t) ? "mp4" : /webm/.test(t) ? "webm" : /ogg/.test(t) ? "ogg" : /wav/.test(t) ? "wav" : "mp3";
+      const path = `voices/${id}-${Date.now()}.${ext}`;
+      prevs[id] = data.voices[id]; urls[id] = URL.createObjectURL(f);
+      files2[path] = { content: f, contentType: ext === "mp4" ? "audio/mp4" : t };
+      data.voices[id] = { path, type: t };
+      if (prevs[id] && prevs[id].path) files2[prevs[id].path] = null;
+    }
+    files2["data/voices.json"] = voicesFile();
+    Object.assign(localUrl, urls);
+    if (await save(files2, "")) { done += batch.length; status(`연결 중… ${done} / ${ids.length}`); }
+    else { failed = true; }
+  }
+  render(); go(idx);
+  status(failed ? `${done}개만 저장됐어요. 다시 한 번 넣어 주세요. (이 화면에서는 ${ids.length}개 모두 들을 수 있어요)` : `${ids.length}개를 사진에 연결했어요!` + (skipped.length ? ` (번호를 못 찾은 파일 ${skipped.length}개 제외)` : ""));
+};
+$("delBtn").onclick = async () => {
+  const p = list[idx]; if (!p || !hasVoice(p)) { status("이 사진에는 녹음이 없어요."); return; }
+  const prev = data.voices[p.id]; delete data.voices[p.id]; delete localUrl[p.id];
+  const files = { "data/voices.json": voicesFile() }; if (prev && prev.path) files[prev.path] = null;
+  await save(files, "녹음을 지웠어요. 이제 기계 목소리로 읽어 줘요."); render(); go(idx);
+};
+
+/* caption editing */
+function closeEdit() { $("editWrap").hidden = true; }
+$("editBtn").onclick = () => { $("editTxt").value = captionOf(list[idx]); $("editWrap").hidden = false; $("editTxt").focus(); };
+$("editCancel").onclick = closeEdit;
+$("editSave").onclick = async () => {
+  const p = list[idx], v = $("editTxt").value.trim(); if (!v) return;
+  if (v === p.caption) delete data.captions[p.id]; else data.captions[p.id] = v;
+  closeEdit(); showCaption(p);
+  await save({ "data/voices.json": voicesFile() }, "자막을 저장했어요.");
+};
+
+renderTabs(); render();
+})();
+</script>
+</body></html>

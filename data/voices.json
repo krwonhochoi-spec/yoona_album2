@@ -1,0 +1,133 @@
+{
+ "voices": {
+  "p001": {
+   "path": "voices/p001.mp3",
+   "type": "audio/mpeg"
+  },
+  "p002": {
+   "path": "voices/p002.mp3",
+   "type": "audio/mpeg"
+  },
+  "p003": {
+   "path": "voices/p003.mp3",
+   "type": "audio/mpeg"
+  },
+  "p004": {
+   "path": "voices/p004.mp3",
+   "type": "audio/mpeg"
+  },
+  "p005": {
+   "path": "voices/p005.mp3",
+   "type": "audio/mpeg"
+  },
+  "p006": {
+   "path": "voices/p006.mp3",
+   "type": "audio/mpeg"
+  },
+  "p007": {
+   "path": "voices/p007.mp3",
+   "type": "audio/mpeg"
+  },
+  "p008": {
+   "path": "voices/p008.mp3",
+   "type": "audio/mpeg"
+  },
+  "p009": {
+   "path": "voices/p009.mp3",
+   "type": "audio/mpeg"
+  },
+  "p010": {
+   "path": "voices/p010.mp3",
+   "type": "audio/mpeg"
+  },
+  "p011": {
+   "path": "voices/p011.mp3",
+   "type": "audio/mpeg"
+  },
+  "p012": {
+   "path": "voices/p012.mp3",
+   "type": "audio/mpeg"
+  },
+  "p013": {
+   "path": "voices/p013.mp3",
+   "type": "audio/mpeg"
+  },
+  "p014": {
+   "path": "voices/p014.mp3",
+   "type": "audio/mpeg"
+  },
+  "p015": {
+   "path": "voices/p015.mp3",
+   "type": "audio/mpeg"
+  },
+  "p016": {
+   "path": "voices/p016.mp3",
+   "type": "audio/mpeg"
+  },
+  "p017": {
+   "path": "voices/p017.mp3",
+   "type": "audio/mpeg"
+  },
+  "p018": {
+   "path": "voices/p018.mp3",
+   "type": "audio/mpeg"
+  },
+  "p019": {
+   "path": "voices/p019.mp3",
+   "type": "audio/mpeg"
+  },
+  "p020": {
+   "path": "voices/p020.mp3",
+   "type": "audio/mpeg"
+  },
+  "p021": {
+   "path": "voices/p021.mp3",
+   "type": "audio/mpeg"
+  },
+  "p022": {
+   "path": "voices/p022.mp3",
+   "type": "audio/mpeg"
+  },
+  "p023": {
+   "path": "voices/p023.mp3",
+   "type": "audio/mpeg"
+  },
+  "p024": {
+   "path": "voices/p024.mp3",
+   "type": "audio/mpeg"
+  },
+  "p025": {
+   "path": "voices/p025.mp3",
+   "type": "audio/mpeg"
+  },
+  "p026": {
+   "path": "voices/p026.mp3",
+   "type": "audio/mpeg"
+  },
+  "p027": {
+   "path": "voices/p027.mp3",
+   "type": "audio/mpeg"
+  },
+  "p028": {
+   "path": "voices/p028.mp3",
+   "type": "audio/mpeg"
+  },
+  "p029": {
+   "path": "voices/p029.mp3",
+   "type": "audio/mpeg"
+  },
+  "p030": {
+   "path": "voices/p030.mp3",
+   "type": "audio/mpeg"
+  },
+  "p031": {
+   "path": "voices/p031.mp3",
+   "type": "audio/mpeg"
+  },
+  "p032": {
+   "path": "voices/p032.mp3",
+   "type": "audio/mpeg"
+  }
+ },
+ "captions": {}
+}
